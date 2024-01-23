@@ -1,0 +1,44 @@
+version: '3.8'
+services:
+  #### Main Containers:
+  ## nginX web services and trigger php on "php"
+  server:
+    image: nginx:stable-alpine
+    ports:
+      - '8000:80'
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./src:var/www/html
+  ## runing and execute php
+  php:
+    build: 
+      context: ./dockerfiles
+      dockerfile: php.dockerfile
+    volumes:
+      # :delegate es para actualizar el volumen en batch, esto lo hace más eficiente a cambio de integridad al 100%
+      - ./src:/var/www/html:delegated
+    # No se necesita para que server se comunique, se hace directo, por lo que no es necesario abrir el puerto hacia afuera
+    #ports:
+    #  - '9000:9000'
+  ## DDBB
+  mysql:
+    image: mysql:5.7
+    env_file:
+      - ./env/mysql.env
+  
+  #### Utility Containers - all necesary for PHP-Laravel
+  ## cli composer (like npm used by Laravel)
+  ## Este se ejecuta una vez para crear el proyectro Laravel en el comando
+  ## docker-compose run --rm composer # hasta este punto solo se indica ejecutar composer, después son comandos del ENTRYPOINT [ "composer", "--ingnore-platform-reqs" ]
+  ## se ejcuta:
+  ## docker-compose run --rm composer create proyect --prefer-dist laravel/laravel .
+  composer:
+    build: 
+      context: ./dockerfiles
+      dockerfile: composer.dockerfile
+    volumes:
+      - ./src:/var/www/html
+  ## cli artisan (used by Laravel)
+  #artisan:
+  ## cli npm (little used by Laravel)
+  #npm:
