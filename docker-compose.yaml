@@ -43,7 +43,7 @@ services:
       - ./src:/var/www/html
   ## cli artisan (used by Laravel)
   artisan:
-    buid:
+    build:
       context: ./dockerfiles
       dockerfile: php.dockerfile
     volumes:
